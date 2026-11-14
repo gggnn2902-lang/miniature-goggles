@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#102a43">
+<title>حاسبة الميزان</title>
+<style>
+  :root { color-scheme: light; --navy:#102a43; --blue:#176b87; --bg:#f2f6f8; --muted:#627789; --green:#087f5b; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:#142b3b; font-family:system-ui,-apple-system,"Segoe UI",Tahoma,Arial,sans-serif; }
+  .wrap { width:min(100%,520px); margin:0 auto; padding:18px 15px 28px; }
+  header { background:linear-gradient(135deg,var(--navy),#176b87); color:#fff; border-radius:22px; padding:22px 20px; box-shadow:0 8px 24px #102a4325; }
+  header .icon { font-size:30px; }
+  h1 { margin:7px 0 4px; font-size:25px; }
+  header p { margin:0; color:#d9e8ef; font-size:14px; }
+  .pricebox,.card { background:#fff; border-radius:18px; padding:17px; margin-top:15px; box-shadow:0 3px 14px #16324a0d; }
+  .section-title { font-weight:750; font-size:17px; margin:0 0 12px; }
+  label { display:block; color:var(--muted); font-size:14px; margin-bottom:7px; }
+  input { width:100%; border:1.5px solid #d7e1e8; border-radius:13px; padding:14px 13px; font-size:21px; font-weight:650; color:var(--navy); background:#fbfdfe; outline:none; direction:ltr; text-align:right; }
+  input:focus { border-color:var(--blue); box-shadow:0 0 0 3px #176b8718; }
+  .hint { color:var(--muted); font-size:12px; margin-top:7px; }
+  .result { margin-top:13px; background:#eaf7f1; border:1px solid #ccebdc; border-radius:14px; padding:13px; text-align:center; }
+  .result .caption { color:#36735c; font-size:13px; }
+  .result strong { display:block; color:var(--green); font-size:29px; margin-top:3px; direction:ltr; }
+  .result small { font-size:15px; }
+  .grid { display:grid; grid-template-columns:1fr; gap:0; }
+  .actions { display:flex; gap:10px; margin-top:16px; }
+  button { border:0; border-radius:13px; padding:14px; font-size:16px; font-weight:750; cursor:pointer; }
+  .clear { flex:1; color:#fff; background:var(--navy); }
+  .note { text-align:center; color:var(--muted); font-size:12px; padding:15px 8px 0; }
+  @media (min-width:430px) { .grid { grid-template-columns:1fr 1fr; gap:12px; } .card { margin-top:15px; } }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <header>
+    <div class="icon">⚖️</div>
+    <h1>حاسبة الميزان</h1>
+    <p>احسب الوزن من المبلغ أو السعر من الوزن — بالشيكل والجرام</p>
+  </header>
+
+  <section class="pricebox">
+    <h2 class="section-title">سعر الكيلو</h2>
+    <label for="price">كم سعر الكيلو بالشيكل؟</label>
+    <input id="price" type="text" inputmode="decimal" autocomplete="off" value="36" aria-label="سعر الكيلو بالشيكل">
+    <div class="hint">غيّر السعر حسب السلعة التي تبيعها، دون الحاجة لحفظ أصناف.</div>
+  </section>
+
+  <div class="grid">
+    <section class="card">
+      <h2 class="section-title">المبلغ ← الوزن</h2>
+      <label for="amount">المبلغ بالشيكل</label>
+      <input id="amount" type="text" inputmode="decimal" autocomplete="off" value="2" aria-label="المبلغ بالشيكل">
+      <div class="result" aria-live="polite">
+        <div class="caption">الوزن المطلوب</div>
+        <strong id="grams">55.56 <small>جرام</small></strong>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 class="section-title">الوزن ← السعر</h2>
+      <label for="weight">الوزن بالجرام</label>
+      <input id="weight" type="text" inputmode="decimal" autocomplete="off" value="100" aria-label="الوزن بالجرام">
+      <div class="result" aria-live="polite">
+        <div class="caption">السعر المطلوب</div>
+        <strong id="cost">3.60 <small>شيكل</small></strong>
+      </div>
+    </section>
+  </div>
+
+  <div class="actions">
+    <button class="clear" id="clear" type="button">مسح المبلغ والوزن</button>
+  </div>
+  <div class="note">الحساب تلقائي وفوري. لا توجد أصناف أو قوائم محفوظة.</div>
+</main>
+<script>
+  const price = document.getElementById('price');
+  const amount = document.getElementById('amount');
+  const weight = document.getElementById('weight');
+  const gramsOut = document.getElementById('grams');
+  const costOut = document.getElementById('cost');
+
+  function numberOf(el) {
+    const raw = el.value.trim().replace(',', '.');
+    if (!raw) return NaN;
+    return Number(raw);
+  }
+  function format(n) {
+    return Number.isFinite(n) ? n.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}) : '—';
+  }
+  function calculate() {
+    const p = numberOf(price);
+    const a = numberOf(amount);
+    const w = numberOf(weight);
+    gramsOut.innerHTML = (p > 0 && a >= 0 ? format(a * 1000 / p) : '—') + ' <small>جرام</small>';
+    costOut.innerHTML = (p > 0 && w >= 0 ? format(w * p / 1000) : '—') + ' <small>شيكل</small>';
+  }
+  [price, amount, weight].forEach(el => el.addEventListener('input', calculate));
+  document.getElementById('clear').addEventListener('click', () => {
+    amount.value = '';
+    weight.value = '';
+    calculate();
+    amount.focus();
+  });
+  calculate();
+</script>
+</body>
+</html>
